@@ -3,14 +3,15 @@ __foldername__ = leno
 __filename__ = lenovo.py
 __author__ = Shrikrishna Joisa
 __date_created__ = 18/12/2020
-__date_last_modified__ = 18/12/2020
+__date_last_modified__ = 23/12/2020
 __python_version__ = 3.7.4 64-bit
+
 """
 
 import scrapy
 from scrapy.http import Request
 from scrapy.selector import Selector
-from leno.items import LenoItem
+from ..items import LenoItem
 import datetime
 import json
 from urllib.parse import urlparse
@@ -28,7 +29,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from w3lib.http import basic_auth_header
 import random
-from leno import settings
+from Leno import settings
 import logging
 from random import randint
 from selenium.webdriver.common.keys import Keys
@@ -85,6 +86,19 @@ class LenovoSpider(scrapy.Spider):
         self.Browse.get(response.url)
         time.sleep(10)
 
+
+        # Click on the servers
+        click_servers = self.Browse.find_element_by_xpath('//div[@class="navigation"]//div[contains(@class, "navigation__tab")][1]')
+        click_servers.click()
+        time.sleep(10)
+
+        # Click on the rack servers
+        click_rack = self.Browse.find_element_by_xpath('//div[@class="category-child-detail__title"]//a[contains(text(), "Rack")]')
+        self.Browse.execute_script("arguments[0].scrollIntoView();", click_rack)
+        click_rack.click()
+        time.sleep(10)
+
+        # Go through the products
         product_list = self.Browse.find_elements_by_xpath('//div[@class="category-children-detail"]//div[@class="category-child-detail__item"]//button')
         for i in range(0, len(product_list)):
             each_product = self.Browse.find_elements_by_xpath('//div[@class="category-children-detail"]//div[@class="category-child-detail__item"]//button')[i]
@@ -93,8 +107,67 @@ class LenovoSpider(scrapy.Spider):
             each_product.click()
             time.sleep(10)
 
+            # Make sure to display 20 products in minimum
+            find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
+            self.Browse.execute_script("arguments[0].scrollIntoView();", find_the_dropdown)
+            find_the_dropdown.click()
+            time.sleep(5)
+
+            # Select the dropdown with quantity 30
+            increase_the_quantity = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//ul//li[3]')
+            increase_the_quantity.click()
+            time.sleep(10)
 
             # Capture the data here through the method of navigation
+            the_table_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')
+            for i in range(0, len(the_table_tr)):
+                the_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')[i]
+                button_customize = the_tr.find_element_by_xpath('//td[@class="actions"]//button[contains(span, "Customize")]')
+                self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
+                button_customize.click()
+                time.sleep(16)
+
+                # Capture the components along with the parts
+                click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
+                click_unconfigured.click()
+                time.sleep(8)
+
+                hxs = Selector(text=self.Browse.page_source)
+
+                # Click on the all the components and capture the data
+                try:
+                    for comp_pos in self.Browse.find_elements_by_xpath('//div[contains(@class, "__sub-tab")]//span[contains(text(), "Processors") or contains(text(), "Memory") or contains(text(), "Storage") or contains(text(), "PCI")]'):
+                        random_sleep = random.randint(7,15)
+                        random_flic  = random.randint(3,9)
+                        self.Browse.execute_script("arguments[0].scrollIntoView();", comp_pos)
+                        try:
+                            time.sleep(random_sleep)
+                            comp_pos.click()
+                            time.sleep(random_sleep)
+                        except Exception as e:
+                            time.sleep(random_flic)
+                            print("Error", e)
+                            time.sleep(random_sleep)
+                    hxs = Selector(text=self.Browse.page_source)
+                except Exception as e:
+                    time.sleep(500)
+                    pass
+
+                for pos,component in enumerate(hxs.xpath('//div[@class="section-panels"]')):
+                    comp = component.xpath('.//div[@class="section-panel-header__items"]//div[contains(@class,"__title")]/text()').extract()
+                    comp = comp[pos]
+                    for table in component.xpath('.//div[@class="ant-collapse"]//div[contains(@class, "ant-collapse-content")]//table'):
+                        heading = table.xpath(".//tr//th").extract()
+                        for row in table.xpath(".//tr"):
+                            item = LenoItem()
+                            item["component"] = comp
+                            for pos,head in enumerate(heading):
+                                val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
+                                if len(val) > 0:
+                                    item[remove_tags(head).strip()] = val
+                            if len(item.keys()) > 1:
+                                yield item
+                                print(item)
 
 
 
