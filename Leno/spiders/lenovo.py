@@ -122,7 +122,8 @@ class LenovoSpider(scrapy.Spider):
             the_table_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')
             for i in range(0, len(the_table_tr)):
                 the_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')[i]
-                button_customize = the_tr.find_element_by_xpath('//td[@class="actions"]//button[contains(span, "Customize")]')
+                button_customize = the_tr.find_element_by_xpath('.//td[@class="actions"]//button[contains(span, "Customize")]')
+                mpn = the_tr.find_element_by_xpath('//td[@class="actions"]//a//div').text
                 self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
                 button_customize.click()
                 time.sleep(16)
@@ -144,55 +145,43 @@ class LenovoSpider(scrapy.Spider):
                             time.sleep(random_sleep)
                             comp_pos.click()
                             time.sleep(random_sleep)
+                            hxs = Selector(text=self.Browse.page_source)
+                            for component in hxs.xpath('//div[@class="section-panels"]//div[@role="tablist"]'):
+                                comp = ''.join(component.xpath('.//div[@class="section-panel-header__items"]//div[contains(@class,"__title")]/text()').extract())
+                                i = 0
+                                for table in component.xpath('.//div[@role="tabpanel"]//table'):
+                                    i = i + 1
+                                    heading = hxs.xpath('(//div[@class="section-panels"]//div[@role="tablist"]//div[@class="section-panel-header__items"]//table//tr)[{number}]//th').format(number=i).extract()
+                                    for row in table.xpath('.//tr'):
+                                        item = LenoItem()
+                                        item["component"] = comp
+                                        item["mpn"] = mpn
+                                        item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
+                                        for pos,head in enumerate(heading):
+                                            val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
+                                            if len(val) > 0:
+                                                item[remove_tags(head).strip()] = val
+                                        if len(item.keys()) > 2:
+                                            yield item
                         except Exception as e:
                             time.sleep(random_flic)
                             print("Error", e)
                             time.sleep(random_sleep)
-                    hxs = Selector(text=self.Browse.page_source)
                 except Exception as e:
                     time.sleep(500)
                     pass
-
-                hxs = Selector(text=self.Browse.page_source)
-
-                for component in hxs.xpath('//div[@class="section-panels"]//div[@role="tablist"]'):
-                    comp = ''.join(component.xpath('.//div[@class="section-panel-header__items"]//div[contains(@class,"__title")]/text()').extract())
-                    for table in component.xpath('.//div[@role="tabpanel"]//table'):
-                        number = len(table)
-                        heading = self.Browse.find_elements_by_xpath('//div[@class="section-panels"]//div[@role="tablist"]//div[@class="section-panel-header__items"]//table//tr//th')[number].text
-                        for row in table.xpath('.//tr'):
-                            item = LenoItem()
-                            item["component"] = comp
-                            item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
-                            for pos,head in enumerate(heading):
-                                val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
-                                if len(val) > 0:
-                                    item[remove_tags(head).strip()] = val
-                            if len(item.keys()) > 2:
-                                yield item
 
                 time.sleep(6)
 
                 go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
                 self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
                 go_back_to_configure.click()
-                time.sleep(10)
+                time.sleep(6)
 
-                # for pos,component in enumerate(hxs.xpath('//div[@class="section-panels"]')):
-                #     comp = component.xpath('.//div[@class="section-panel-header__items"]//div[contains(@class,"__title")]/text()').extract()
-                #     comp = comp[pos]
-                #     for table in component.xpath('.//div[@class="ant-collapse"]//div[contains(@class, "ant-collapse-content")]//table'):
-                #         heading = table.xpath(".//tr//th").extract()
-                #         for row in table.xpath(".//tr"):
-                #             item = LenoItem()
-                #             item["component"] = comp
-                #             for pos,head in enumerate(heading):
-                #                 val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
-                #                 if len(val) > 0:
-                #                     item[remove_tags(head).strip()] = val
-                #             if len(item.keys()) > 1:
-                #                 yield item
-                #                 print(item)
+                lose_it = self.Browse.find_element_by_xpath('//div[@class="ant-confirm-btns"]//button[contains(span, "Lose it")]')
+                self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
+                lose_it.click()
+                time.sleep(12)
 
 
 
