@@ -107,7 +107,7 @@ class LenovoSpider(scrapy.Spider):
             each_product.click()
             time.sleep(10)
 
-            # Make sure to display 20 products in minimum
+            # Make sure to display 30 products in minimum
             find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
             self.Browse.execute_script("arguments[0].scrollIntoView();", find_the_dropdown)
             find_the_dropdown.click()
@@ -118,12 +118,31 @@ class LenovoSpider(scrapy.Spider):
             increase_the_quantity.click()
             time.sleep(10)
 
+
             # Capture the data here through the method of navigation
             the_table_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')
             for i in range(0, len(the_table_tr)):
+
+                try:
+
+                    # Make sure to display 30 products in minimum
+                    find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
+                    self.Browse.execute_script("arguments[0].scrollIntoView();", find_the_dropdown)
+                    find_the_dropdown.click()
+                    time.sleep(5)
+
+                    # Select the dropdown with quantity 30
+                    increase_the_quantity = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//ul//li[3]')
+                    increase_the_quantity.click()
+                    time.sleep(10)
+
+                except Exception as e:
+                    print("Already dropdown is selected to 30")
+
                 the_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')[i]
                 button_customize = the_tr.find_element_by_xpath('.//td[@class="actions"]//button[contains(span, "Customize")]')
                 mpn = the_tr.find_element_by_xpath('//td[@class="actions"]//a//div').text
+                unit_price = the_tr.find_element_by_xpath('//td[@class="UnitPrice"]').text
                 self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
                 button_customize.click()
                 time.sleep(16)
@@ -151,11 +170,12 @@ class LenovoSpider(scrapy.Spider):
                                 i = 0
                                 for table in component.xpath('.//div[@role="tabpanel"]//table'):
                                     i = i + 1
-                                    heading = hxs.xpath('(//div[@class="section-panels"]//div[@role="tablist"]//div[@class="section-panel-header__items"]//table//tr)[{number}]//th').format(number=i).extract()
+                                    heading = hxs.xpath('(//div[@class="section-panels"]//div[@role="tablist"]//div[@class="section-panel-header__items"]//table//tr)['+str(i)+']//th').extract()
                                     for row in table.xpath('.//tr'):
                                         item = LenoItem()
                                         item["component"] = comp
                                         item["mpn"] = mpn
+                                        item["unit price"] = unit_price
                                         item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
                                         for pos,head in enumerate(heading):
                                             val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
@@ -183,7 +203,10 @@ class LenovoSpider(scrapy.Spider):
                 lose_it.click()
                 time.sleep(12)
 
-
+            go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
+            self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_server)
+            go_back_to_server.click()
+            time.sleep(6)
 
     def spider_closed(self, spider):
         self.Browse.quit()
