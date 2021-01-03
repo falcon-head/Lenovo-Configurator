@@ -48,7 +48,7 @@ class LenovoSpider(scrapy.Spider):
         """
 
         #! Test link url https://h22174.www2.hpe.com/ngc/Welcome [Use it when the https://h22174.www2.hpe.com/SimplifiedConfig/Welcome# URL is down]
-        yield scrapy.Request("https://dcsc.lenovo.com/#/categories/STG%40Servers%40Rack%20and%20Tower%20Servers", callback=self.parse)
+        yield scrapy.Request("https://dcsc.lenovo.com/#/categories/STG%40Servers%40Rack%20and%20Tower%20Servers", callback=self.parse, meta={'proxy': 'http://proxy.ins.dell.com:80'}, headers={'Proxy-Authorization': basic_auth_header(self.username, self.pwd)})
 
     def __init__(self, username='', pwd='', **kwargs):
         """
@@ -86,7 +86,6 @@ class LenovoSpider(scrapy.Spider):
         self.Browse.get(response.url)
         time.sleep(10)
 
-
         # Click on the servers
         click_servers = self.Browse.find_element_by_xpath('//div[@class="navigation"]//div[contains(@class, "navigation__tab")][1]')
         click_servers.click()
@@ -107,50 +106,35 @@ class LenovoSpider(scrapy.Spider):
             each_product.click()
             time.sleep(10)
 
-            # Make sure to display 30 products in minimum
-            find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
-            self.Browse.execute_script("arguments[0].scrollIntoView();", find_the_dropdown)
-            find_the_dropdown.click()
-            time.sleep(5)
+            # # Make sure to display 30 products in minimum
+            # find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
+            # self.Browse.execute_script("arguments[0].scrollIntoView();", find_the_dropdown)
+            # find_the_dropdown.click()
+            # time.sleep(5)
 
-            # Select the dropdown with quantity 30
-            increase_the_quantity = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//ul//li[3]')
-            increase_the_quantity.click()
-            time.sleep(10)
-
+            # # Select the dropdown with quantity 30
+            # increase_the_quantity = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//ul//li[3]')
+            # increase_the_quantity.click()
+            # time.sleep(10)
 
             # Capture the data here through the method of navigation
             the_table_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')
             for i in range(0, len(the_table_tr)):
 
-                try:
-
-                    # Make sure to display 30 products in minimum
-                    find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
-                    self.Browse.execute_script("arguments[0].scrollIntoView();", find_the_dropdown)
-                    find_the_dropdown.click()
-                    time.sleep(5)
-
-                    # Select the dropdown with quantity 30
-                    increase_the_quantity = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//ul//li[3]')
-                    increase_the_quantity.click()
-                    time.sleep(10)
-
-                except Exception as e:
-                    print("Already dropdown is selected to 30")
-
                 the_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')[i]
                 button_customize = the_tr.find_element_by_xpath('.//td[@class="actions"]//button[contains(span, "Customize")]')
                 mpn = the_tr.find_element_by_xpath('//td[@class="actions"]//a//div').text
                 unit_price = the_tr.find_element_by_xpath('//td[@class="UnitPrice"]').text
+                server_model = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]').text
+                server_model = server_model.replace("/", "")
                 self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
                 button_customize.click()
-                time.sleep(16)
+                time.sleep(20)
 
                 # Capture the components along with the parts
                 click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                 click_unconfigured.click()
-                time.sleep(8)
+                time.sleep(15)
 
                 hxs = Selector(text=self.Browse.page_source)
 
@@ -176,6 +160,7 @@ class LenovoSpider(scrapy.Spider):
                                         item["component"] = comp
                                         item["mpn"] = mpn
                                         item["unit price"] = unit_price
+                                        item["server model"] = server_model
                                         item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
                                         for pos,head in enumerate(heading):
                                             val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
@@ -183,6 +168,7 @@ class LenovoSpider(scrapy.Spider):
                                                 item[remove_tags(head).strip()] = val
                                         if len(item.keys()) > 2:
                                             yield item
+                                time.sleep(6)
                         except Exception as e:
                             time.sleep(random_flic)
                             print("Error", e)
@@ -201,12 +187,95 @@ class LenovoSpider(scrapy.Spider):
                 lose_it = self.Browse.find_element_by_xpath('//div[@class="ant-confirm-btns"]//button[contains(span, "Lose it")]')
                 self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
                 lose_it.click()
-                time.sleep(12)
+                time.sleep(14)
 
             go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
             self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_server)
             go_back_to_server.click()
             time.sleep(6)
+
+        # except Exception as e:
+
+        #     print("I am a unconfigured server")
+        #     time.sleep(10)
+
+        #     get_cto_card = self.Browse.find_elements_by_xpath('//div[@class="category-cto-section__list"]//div[@class="ant-row"]//div[contains(@class, "category-cto-section__card")]')
+        #     for i in range(0, len(get_cto_card)):
+        #         each_card = self.Browse.find_elements_by_xpath('//div[@class="category-cto-section__list"]//div[@class="ant-row"]//div[contains(@class, "category-cto-section__card")]')[i]
+        #         configure_button = each_card.find_element_by_xpath('//button[contains(text(), Customize)]')
+        #         mpn = each_card.find_element_by_xpath('//span[@class="category-cto-card__code"]').text
+        #         mpn = mpn.replace("Withdrawn", "")
+        #         server_model = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]').text
+        #         server_model = server_model.replace("/", "")
+        #         self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
+        #         configure_button.click()
+        #         time.sleep(16)
+
+        #         # Capture the components along with the parts
+        #         click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
+        #         click_unconfigured.click()
+        #         time.sleep(15)
+
+        #         hxs = Selector(text=self.Browse.page_source)
+
+        #         # Click on the all the components and capture the data
+        #         try:
+        #             for comp_pos in self.Browse.find_elements_by_xpath('//div[contains(@class, "__sub-tab")]//span[contains(text(), "Processors") or contains(text(), "Memory") or contains(text(), "Storage") or contains(text(), "PCI")]'):
+        #                 random_sleep = random.randint(7,15)
+        #                 random_flic  = random.randint(3,9)
+        #                 self.Browse.execute_script("arguments[0].scrollIntoView();", comp_pos)
+        #                 try:
+        #                     time.sleep(random_sleep)
+        #                     comp_pos.click()
+        #                     time.sleep(random_sleep)
+        #                     hxs = Selector(text=self.Browse.page_source)
+        #                     for component in hxs.xpath('//div[@class="section-panels"]//div[@role="tablist"]'):
+        #                         comp = ''.join(component.xpath('.//div[@class="section-panel-header__items"]//div[contains(@class,"__title")]/text()').extract())
+        #                         i = 0
+        #                         for table in component.xpath('.//div[@role="tabpanel"]//table'):
+        #                             i = i + 1
+        #                             heading = hxs.xpath('(//div[@class="section-panels"]//div[@role="tablist"]//div[@class="section-panel-header__items"]//table//tr)['+str(i)+']//th').extract()
+        #                             for row in table.xpath('.//tr'):
+        #                                 item = LenoItem()
+        #                                 item["component"] = comp
+        #                                 item["mpn"] = mpn
+        #                                 item["unit price"] = unit_price
+        #                                 item["server model"] = server_model
+        #                                 item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
+        #                                 for pos,head in enumerate(heading):
+        #                                     val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
+        #                                     if len(val) > 0:
+        #                                         item[remove_tags(head).strip()] = val
+        #                                 if len(item.keys()) > 2:
+        #                                     yield item
+        #                         time.sleep(6)
+        #                 except Exception as e:
+        #                     time.sleep(random_flic)
+        #                     print("Error", e)
+        #                     time.sleep(random_sleep)
+        #         except Exception as e:
+        #             time.sleep(500)
+        #             pass
+
+        #         time.sleep(6)
+
+        #         go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
+        #         self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
+        #         go_back_to_configure.click()
+        #         time.sleep(6)
+
+        #         lose_it = self.Browse.find_element_by_xpath('//div[@class="ant-confirm-btns"]//button[contains(span, "Lose it")]')
+        #         self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
+        #         lose_it.click()
+        #         time.sleep(14)
+
+        #     go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
+        #     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_server)
+        #     go_back_to_server.click()
+        #     time.sleep(6)
+
+
+
 
     def spider_closed(self, spider):
         self.Browse.quit()
