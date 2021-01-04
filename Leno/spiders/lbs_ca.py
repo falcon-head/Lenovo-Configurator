@@ -215,6 +215,11 @@ class LenovoSpider(scrapy.Spider):
                     summary.click()
                     time.sleep(15)
 
+                    # Click to load the table
+                    panel_item = self.Browse.find_element_by_xpath('//div[@class="panel-header"]//span[@class="panel-header__title"]')
+                    panel_item.click()
+                    time.sleep(5)
+
                     hxs = Selector(text=self.Browse.page_source)
 
                     # Capture the data here

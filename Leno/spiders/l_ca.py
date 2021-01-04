@@ -131,7 +131,7 @@ class LenovoSpider(scrapy.Spider):
                 self.Browse.execute_script("arguments[0].scrollIntoView();", each_product)
                 time.sleep(5)
                 each_product.click()
-                time.sleep(10)
+                time.sleep(15)
 
                 # # Make sure to display 30 products in minimum
                 # find_the_dropdown = self.Browse.find_element_by_xpath('//div[@class="ant-pagination-options"]//div[@class="ant-select-selection-selected-value"]')
@@ -156,7 +156,7 @@ class LenovoSpider(scrapy.Spider):
                     server_model = server_model.replace("/", "")
                     self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
                     button_customize.click()
-                    time.sleep(30)
+                    time.sleep(40)
 
 
                     configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
@@ -164,7 +164,7 @@ class LenovoSpider(scrapy.Spider):
                     # Capture the components along with the parts
                     click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                     click_unconfigured.click()
-                    time.sleep(25)
+                    time.sleep(30)
 
                     hxs = Selector(text=self.Browse.page_source)
 
@@ -242,7 +242,7 @@ class LenovoSpider(scrapy.Spider):
                         server_model = server_model.replace("/", "")
                         self.Browse.execute_script("arguments[0].scrollIntoView();", configure_button)
                         configure_button.click()
-                        time.sleep(30)
+                        time.sleep(40)
 
                         # Capture the required data here
                         configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
@@ -250,7 +250,7 @@ class LenovoSpider(scrapy.Spider):
                         # Capture the components along with the parts
                         click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                         click_unconfigured.click()
-                        time.sleep(25)
+                        time.sleep(30)
 
                         hxs = Selector(text=self.Browse.page_source)
 
@@ -305,7 +305,7 @@ class LenovoSpider(scrapy.Spider):
                         lose_it = self.Browse.find_element_by_xpath('//div[@class="ant-confirm-btns"]//button[contains(span, "Lose it")]')
                         self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
                         lose_it.click()
-                        time.sleep(14)
+                        time.sleep(15)
 
                 except Exception as e:
                     print("CTO cards cannot be found")
@@ -313,7 +313,7 @@ class LenovoSpider(scrapy.Spider):
                 go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
                 self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_server)
                 go_back_to_server.click()
-                time.sleep(6)
+                time.sleep(10)
 
             else :
 
@@ -330,7 +330,7 @@ class LenovoSpider(scrapy.Spider):
                     server_model = server_model.replace("/", "")
                     self.Browse.execute_script("arguments[0].scrollIntoView();", configure_button)
                     configure_button.click()
-                    time.sleep(30)
+                    time.sleep(40)
 
                     # Capture the required data here
                     configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
@@ -338,7 +338,7 @@ class LenovoSpider(scrapy.Spider):
                     # Capture the components along with the parts
                     click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                     click_unconfigured.click()
-                    time.sleep(25)
+                    time.sleep(30)
 
                     hxs = Selector(text=self.Browse.page_source)
 
@@ -388,12 +388,12 @@ class LenovoSpider(scrapy.Spider):
                     go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
                     go_back_to_configure.click()
-                    time.sleep(6)
+                    time.sleep(8)
 
                     lose_it = self.Browse.find_element_by_xpath('//div[@class="ant-confirm-btns"]//button[contains(span, "Lose it")]')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
                     lose_it.click()
-                    time.sleep(14)
+                    time.sleep(25)
 
 
                 go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
