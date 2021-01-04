@@ -3,7 +3,7 @@ __foldername__ = leno
 __filename__ = lenovo.py
 __author__ = Shrikrishna Joisa
 __date_created__ = 18/12/2020
-__date_last_modified__ = 23/12/2020
+__date_last_modified__ = 04/01/2021
 __python_version__ = 3.7.4 64-bit
 
 """
@@ -123,7 +123,7 @@ class LenovoSpider(scrapy.Spider):
 
                 # Capture the data here through the method of navigation
                 the_table_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')
-                for i in range(0, len(the_table_tr)):
+                for i in range(4, len(the_table_tr)):
 
                     the_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')[i]
                     button_customize = the_tr.find_element_by_xpath('.//td[@class="actions"]//button[contains(span, "Customize")]')
@@ -212,7 +212,7 @@ class LenovoSpider(scrapy.Spider):
                     get_cto_card = self.Browse.find_elements_by_xpath('//div[@class="category-cto-section__list"]//div[@class="ant-row"]//div[contains(@class, "category-cto-section__card")]')
                     for i in range(0, len(get_cto_card)):
                         each_card = self.Browse.find_elements_by_xpath('//div[@class="category-cto-section__list"]//div[@class="ant-row"]//div[contains(@class, "category-cto-section__card")]')[i]
-                        configure_button = each_card.find_element_by_xpath('/div[@class="category-cto-card__customize"]//button')
+                        configure_button = each_card.find_element_by_xpath('//div[@class="category-cto-card__customize"]//button')
                         mpn = each_card.find_element_by_xpath('//span[@class="category-cto-card__code"]').text
                         mpn = mpn.replace("Withdrawn", "")
                         server_model = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]').text

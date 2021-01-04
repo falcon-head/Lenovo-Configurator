@@ -2,8 +2,8 @@
 __foldername__ = leno
 __filename__ = lenovo.py
 __author__ = Shrikrishna Joisa
-__date_created__ = 18/12/2020
-__date_last_modified__ = 23/12/2020
+__date_created__ = 03/01/2021
+__date_last_modified__ = 04/01/2021
 __python_version__ = 3.7.4 64-bit
 
 """
