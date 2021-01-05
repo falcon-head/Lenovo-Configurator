@@ -248,21 +248,14 @@ class LenovoSpider(scrapy.Spider):
                     server_model = server_model.replace("/", "")
                     self.Browse.execute_script("arguments[0].scrollIntoView();", configure_button)
                     configure_button.click()
-                    time.sleep(30)
+                    time.sleep(40)
 
                     # Capture the required data here
                     configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
 
-                    # Capture the components along with the parts
-                    click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
-                    click_unconfigured.click()
-                    time.sleep(25)
-
-                    hxs = Selector(text=self.Browse.page_source)
-
                     # Click on the all the components and capture the data
                     try:
-                        for comp_pos in self.Browse.find_elements_by_xpath('//div[contains(@class, "__sub-tab")]//span[contains(text(), "Processors") or contains(text(), "Memory") or contains(text(), "Storage") or contains(text(), "PCI")]'):
+                        for comp_pos in self.Browse.find_elements_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Base")]'):
                             random_sleep = random.randint(7,15)
                             random_flic  = random.randint(3,9)
                             self.Browse.execute_script("arguments[0].scrollIntoView();", comp_pos)
@@ -302,6 +295,37 @@ class LenovoSpider(scrapy.Spider):
                         pass
 
                     time.sleep(6)
+
+                    # Click the summary button
+                    summary = self.Browse.find_element_by_xpath('//div[contains(@class, "summary-side-action-bar")][1]//button')
+                    self.Browse.execute_script("arguments[0].scrollIntoView();", summary)
+                    summary.click()
+                    time.sleep(15)
+
+                    # Click to load the table
+                    panel_item = self.Browse.find_element_by_xpath('//div[@class="panel-header"]//span[@class="panel-header__title"]')
+                    panel_item.click()
+                    time.sleep(5)
+
+                    hxs = Selector(text=self.Browse.page_source)
+
+                    # Capture the data here
+                    capture_table = hxs.xpath('//div[@class="ant-table-body"]//table')
+                    heading = capture_table.xpath('.//th').extract()
+                    for row in capture_table.xpath('.//tr'):
+                        item = LenoItem()
+                        item["Mode"] = "CTO"
+                        for pos,head in enumerate(heading):
+                            val = remove_tags(''.join(row.xpath('./td[{}]'.format(pos+1)).extract())).strip()
+                            if len(val) > 0:
+                                item[remove_tags(head).strip()] = val
+                        if len(item.keys()) > 2:
+                            yield item
+
+                    self.Browse.execute_script("window.history.go(-1)")
+
+                    time.sleep(30)
+
 
                     go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
