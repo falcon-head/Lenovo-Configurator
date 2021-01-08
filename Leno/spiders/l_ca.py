@@ -158,10 +158,18 @@ class LenovoSpider(scrapy.Spider):
                     button_customize.click()
                     time.sleep(40)
 
+                    server_mpn = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[5]').text
+                    server_mpn = server_mpn.replace("/", "")
 
                     configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
 
                     # Capture the components along with the parts
+                    # click next
+                    next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
+                    next_button.click()
+                    time.sleep(2)
+
+                    # click unconfigured
                     click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                     click_unconfigured.click()
                     time.sleep(30)
@@ -189,6 +197,7 @@ class LenovoSpider(scrapy.Spider):
                                             item = LenoItem()
                                             item["Component"] = comp
                                             item["MPN"] = mpn
+                                            item["Server Mpn"] = server_mpn
                                             item["Unit Price"] = unit_price
                                             item["Server Model"] = server_model
                                             item["Configuration Price"] = configuration_price
@@ -200,19 +209,18 @@ class LenovoSpider(scrapy.Spider):
                                                     item[remove_tags(head).strip()] = val
                                             if len(item.keys()) > 2:
                                                 yield item
-                                    time.sleep(6)
+
                             except Exception as e:
                                 time.sleep(random_flic)
                                 print("Error", e)
                                 time.sleep(random_sleep)
                     except Exception as e:
-                        time.sleep(500)
+                        time.sleep(15)
                         pass
-
-                    time.sleep(6)
 
                     go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
+                    time.sleep(3)
                     go_back_to_configure.click()
                     time.sleep(6)
 
@@ -244,10 +252,19 @@ class LenovoSpider(scrapy.Spider):
                         configure_button.click()
                         time.sleep(40)
 
+                        server_mpn = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[5]').text
+                        server_mpn = server_mpn.replace("/", "")
+
                         # Capture the required data here
                         configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
 
                         # Capture the components along with the parts
+                        # click next
+                        next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
+                        next_button.click()
+                        time.sleep(2)
+
+                        # click unconfigured
                         click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                         click_unconfigured.click()
                         time.sleep(30)
@@ -275,6 +292,7 @@ class LenovoSpider(scrapy.Spider):
                                                 item = LenoItem()
                                                 item["Component"] = comp
                                                 item["MPN"] = mpn
+                                                item["Server Mpn"] = server_mpn
                                                 item["Unit Price"] = ""
                                                 item["Server Model"] = server_model
                                                 item["Configuration Price"] = configuration_price
@@ -286,19 +304,19 @@ class LenovoSpider(scrapy.Spider):
                                                         item[remove_tags(head).strip()] = val
                                                 if len(item.keys()) > 2:
                                                     yield item
-                                        time.sleep(6)
+
                                 except Exception as e:
                                     time.sleep(random_flic)
                                     print("Error", e)
                                     time.sleep(random_sleep)
                         except Exception as e:
-                            time.sleep(500)
+                            time.sleep(15)
                             pass
 
-                        time.sleep(6)
 
                         go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
                         self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
+                        time.sleep(3)
                         go_back_to_configure.click()
                         time.sleep(6)
 
@@ -336,6 +354,12 @@ class LenovoSpider(scrapy.Spider):
                     configuration_price = self.Browse.find_element_by_xpath('//div[@class="summary-side-price__value"]').text
 
                     # Capture the components along with the parts
+                    # click next
+                    next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
+                    next_button.click()
+                    time.sleep(2)
+
+                    # click unconfigured
                     click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
                     click_unconfigured.click()
                     time.sleep(30)
@@ -374,26 +398,26 @@ class LenovoSpider(scrapy.Spider):
                                                     item[remove_tags(head).strip()] = val
                                             if len(item.keys()) > 2:
                                                 yield item
-                                    time.sleep(6)
                             except Exception as e:
                                 time.sleep(random_flic)
                                 print("Error", e)
                                 time.sleep(random_sleep)
                     except Exception as e:
-                        time.sleep(500)
+                        time.sleep(15)
                         pass
 
                     time.sleep(6)
 
                     go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
+                    time.sleep(3)
                     go_back_to_configure.click()
-                    time.sleep(8)
+                    time.sleep(6)
 
                     lose_it = self.Browse.find_element_by_xpath('//div[@class="ant-confirm-btns"]//button[contains(span, "Lose it")]')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
                     lose_it.click()
-                    time.sleep(25)
+                    time.sleep(15)
 
 
                 go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
