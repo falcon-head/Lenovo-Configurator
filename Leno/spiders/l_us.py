@@ -101,7 +101,7 @@ class LenovoSpider(scrapy.Spider):
         # Go through the products
         product_list = self.Browse.find_elements_by_xpath('//div[@class="category-children-detail"]//div[@class="category-child-detail__item"]//button')
         j = 0
-        for i in range(1, len(product_list)):
+        for i in range(0, len(product_list)):
             j = j+1
             if( j == 1 or j == 2 or j == 3 or j == 9 or j == 10 or j==11 or j==12 or j == 13 or j == 14 or j == 15):
                 each_product = self.Browse.find_elements_by_xpath('//div[@class="category-children-detail"]//div[@class="category-child-detail__item"]//button')[i]
@@ -128,13 +128,12 @@ class LenovoSpider(scrapy.Spider):
                     the_tr = self.Browse.find_elements_by_xpath('//div[@type="preconfigured-models"]//table//tbody[@class="ant-table-tbody"]//tr')[k]
                     button_customize = the_tr.find_element_by_xpath('.//td[@class="actions"]//button[contains(span, "Customize")]')
                     mpn = the_tr.find_element_by_xpath('//td[@class="actions"]//a//div').text
-                    print(mpn)
                     unit_price = the_tr.find_element_by_xpath('//td[@class="UnitPrice"]').text
                     server_model = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]').text
                     server_model = server_model.replace("/", "")
                     self.Browse.execute_script("arguments[0].scrollIntoView();", button_customize)
                     button_customize.click()
-                    time.sleep(30)
+                    time.sleep(40)
 
                     hxs = Selector(text=self.Browse.page_source)
                     server_mpn = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[5]').text
@@ -144,9 +143,13 @@ class LenovoSpider(scrapy.Spider):
 
                     # Capture the components along with the parts
                     # click next
-                    next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
-                    next_button.click()
-                    time.sleep(2)
+                    try:
+                        next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
+                        next_button.click()
+                        time.sleep(2)
+                    except Exception as e:
+                        print(e)
+                        print("Not present")
 
                     # click unconfigured
                     click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
@@ -176,10 +179,10 @@ class LenovoSpider(scrapy.Spider):
                                         for row in table.xpath('.//tr'):
                                             item = LenoItem()
                                             item["Component"] = comp
-                                            item["MPN"] = mpn
-                                            item["Server Mpn"] = server_mpn
+                                            item["MPN"] = server_mpn
                                             item["Unit Price"] = unit_price
                                             item["Server Model"] = server_model
+                                            item["Country"] = "CA"
                                             item["Configuration Price"] = configuration_price
                                             item["Mode"] = "BTO"
                                             item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
@@ -198,7 +201,7 @@ class LenovoSpider(scrapy.Spider):
                         time.sleep(15)
                         pass
 
-                    go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
+                    go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]//a')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
                     time.sleep(3)
                     go_back_to_configure.click()
@@ -247,9 +250,13 @@ class LenovoSpider(scrapy.Spider):
 
                         # Capture the components along with the parts
                         # click next
-                        next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
-                        next_button.click()
-                        time.sleep(2)
+                        try:
+                            next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
+                            next_button.click()
+                            time.sleep(2)
+                        except Exception as e:
+                            print(e)
+                            print("Not present")
 
                         # click unconfigured
                         click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
@@ -279,9 +286,9 @@ class LenovoSpider(scrapy.Spider):
                                                 item = LenoItem()
                                                 item["Component"] = comp
                                                 item["MPN"] = mpn
-                                                item["Server Mpn"] = server_mpn
                                                 item["Unit Price"] = ""
                                                 item["Server Model"] = server_model
+                                                item["Country"] = "US"
                                                 item["Configuration Price"] = configuration_price
                                                 item["Mode"] ="CTO"
                                                 item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
@@ -299,7 +306,7 @@ class LenovoSpider(scrapy.Spider):
                             time.sleep(15)
                             pass
 
-                        go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
+                        go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]//a')
                         self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
                         time.sleep(3)
                         go_back_to_configure.click()
@@ -325,6 +332,13 @@ class LenovoSpider(scrapy.Spider):
                 print("I am a unconfigured server")
                 time.sleep(10)
 
+                # click on the actual product
+                each_product = self.Browse.find_elements_by_xpath('//div[@class="category-children-detail"]//div[@class="category-child-detail__item"]//button')[i]
+                self.Browse.execute_script("arguments[0].scrollIntoView();", each_product)
+                time.sleep(5)
+                each_product.click()
+                time.sleep(10)
+
                 get_cto_card = self.Browse.find_elements_by_xpath('//div[@class="category-cto-section__list"]//div[@class="ant-row"]//div[contains(@class, "category-cto-section__card")]')
                 for i in range(0, len(get_cto_card)):
                     each_card = self.Browse.find_elements_by_xpath('//div[@class="category-cto-section__list"]//div[@class="ant-row"]//div[contains(@class, "category-cto-section__card")]')[i]
@@ -342,9 +356,13 @@ class LenovoSpider(scrapy.Spider):
 
                     # Capture the components along with the parts
                     # click next
-                    next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
-                    next_button.click()
-                    time.sleep(2)
+                    try:
+                        next_button=self.Browse.find_element_by_xpath('//div[@class="ant-col-24"]//button[@class="slick-arrow slick-next"]')
+                        next_button.click()
+                        time.sleep(2)
+                    except Exception as e:
+                        print(e)
+                        print("Not present")
 
                     # click unconfigured
                     click_unconfigured = self.Browse.find_element_by_xpath('//div[@class="slick-track"]//div[contains(text(), "Unconfigure")]')
@@ -376,6 +394,7 @@ class LenovoSpider(scrapy.Spider):
                                             item["MPN"] = mpn
                                             item["Unit Price"] = ""
                                             item["Server Model"] = server_model
+                                            item["Country"] = "US"
                                             item["Configuration Price"] = configuration_price
                                             item["Mode"] ="CTO"
                                             item['DateTime'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
@@ -393,7 +412,7 @@ class LenovoSpider(scrapy.Spider):
                         time.sleep(15)
                         pass
 
-                    go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]')
+                    go_back_to_configure = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[4]//a')
                     self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_configure)
                     time.sleep(3)
                     go_back_to_configure.click()
@@ -403,7 +422,6 @@ class LenovoSpider(scrapy.Spider):
                     self.Browse.execute_script("arguments[0].scrollIntoView();", lose_it)
                     lose_it.click()
                     time.sleep(14)
-
 
                 go_back_to_server = self.Browse.find_element_by_xpath('//div[@class="ant-breadcrumb"]//span[3]')
                 self.Browse.execute_script("arguments[0].scrollIntoView();", go_back_to_server)
